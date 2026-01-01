@@ -13,7 +13,8 @@
         overflow: hidden;
         font-family: 'Zen Kaku Gothic New', sans-serif;
         -webkit-font-smoothing: antialiased;
-        touch-action: none; /* Prevent browser zooming */
+        /* CHANGED: Allow panning (scrolling) but prevent double-tap zoom */
+        touch-action: manipulation; 
       }
       
       /* Y2K Scanline Effect */

@@ -104,9 +104,16 @@ const App: React.FC = () => {
 
   // --- GESTURES (Level 2 & 3 only - Simple Touch) ---
   useGesture({
-    onDrag: ({ offset: [x], swipe: [swipeX] }) => {
-       if (swipeX === -1) handleSongSwipe(1); // Swipe Left -> Next
-       if (swipeX === 1) handleSongSwipe(-1); // Swipe Right -> Prev
+    // Use onDragEnd for more reliable mobile behavior (captures both fast swipes and slow drags)
+    onDragEnd: ({ movement: [mx], swipe: [swipeX] }) => {
+       // Priority 1: Fast Swipe (Velocity based)
+       if (swipeX === -1) { handleSongSwipe(1); return; } // Left -> Next
+       if (swipeX === 1)  { handleSongSwipe(-1); return; } // Right -> Prev
+
+       // Priority 2: Slow Drag Distance (Fallback)
+       // If user drags more than 50px, we treat it as a navigation
+       if (mx < -50) handleSongSwipe(1);
+       else if (mx > 50) handleSongSwipe(-1);
     },
     onPinch: ({ offset: [d], direction: [dd] }) => {
       if (d > 20 && dd > 0) setViewMode(ViewMode.DETAIL); // Pinch Out -> Expand
@@ -263,7 +270,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Shelf Scroll Container */}
-            <div className="flex-1 w-full overflow-x-auto no-scrollbar flex flex-col justify-center">
+            <div className="flex-1 w-full overflow-x-auto no-scrollbar flex flex-col justify-center" style={{ touchAction: 'pan-x' }}>
                  <div className="min-w-full w-fit mx-auto px-12 flex items-center gap-[4px] py-10">
                      {MOCK_EPISODES.map((ep, idx) => (
                        <motion.div
@@ -304,6 +311,7 @@ const App: React.FC = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+            style={{ touchAction: 'none' }} // IMPORTANT: Disable scroll here to allow gesture drag
           >
              {/* MOVED RECEIPT MODAL OUTSIDE TO ROOT LEVEL FOR PROPER SCROLLING */}
 
